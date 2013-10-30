@@ -47,9 +47,10 @@ class SocketIOHandler(tornado.web.RequestHandler):
         self.render('static/js/socket.io.js')
 
 class FileDownloadReady(tornadio2.conn.SocketConnection):
+    connections = []
 
     def open(self):
-        self.send("open")
+        self.connections.append(self)
 
     def on_message(self,message):
         # TODO: Check that the proc is complete!! When it is complete, send the message
@@ -57,6 +58,7 @@ class FileDownloadReady(tornadio2.conn.SocketConnection):
         self.send(message)
         
     def close(self):
+        self.connections.remove(self)
         print "connection closed"
 
 DLRouter = tornadio2.router.TornadioRouter(FileDownloadReady, {'enabled_protocols': ['websocket','flashsocket','xhr-multipart','xhr-polling']})
