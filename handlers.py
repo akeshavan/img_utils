@@ -1,0 +1,214 @@
+"""
+Handlers
+"""
+
+import tornado.web
+from tornado.escape import json_encode
+from nipype.utils.filemanip import split_filename
+import subprocess
+import os
+import tornadio2.router
+import tornadio2
+import tornadio2.server
+#import tornadio2.web
+
+# files to store handlers
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("index.tpl",
+                    project_name=self.settings["globals"]["project_name"],
+                    moduleName=""
+                   )
+
+
+class FileUploadHandler(tornado.web.RequestHandler):
+    def get(self):
+        pass
+        return
+
+    def post(self):
+        files = self.request.files["file"][0]
+        _,name,ext = split_filename(files["filename"])
+        oldname = os.path.join('uploads',name+ext)
+        foo = open(oldname,'w')
+        foo.write(files["body"])
+        foo.close()
+        newname = os.path.join('downloads',name+'.jpg')
+        proc = subprocess.Popen(['convert',oldname,newname])
+        print "converting", oldname, "to", newname
+        self.render("index.tpl",
+                    project_name=self.settings["globals"]["project_name"],
+                    moduleName="",outfile=newname
+                   )
+
+
+class SocketIOHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render('static/js/socket.io.js')
+
+class FileDownloadReady(tornadio2.conn.SocketConnection):
+
+    def open(self):
+        self.send("open")
+
+    def on_message(self,message):
+        # TODO: Check that the proc is complete!! When it is complete, send the message
+        print "hello!"
+        self.send(message)
+        
+    def close(self):
+        print "connection closed"
+
+DLRouter = tornadio2.router.TornadioRouter(FileDownloadReady, {'enabled_protocols': ['websocket','flashsocket','xhr-multipart','xhr-polling']})
+
+class AjaxHandler(tornado.web.RequestHandler):
+    data = {
+        "index":[
+                  { "url" : "/",             "name" : "Index" },
+                  { "url" : "hero",          "name" : "Hero" },
+                  { "url" : "fluid",         "name" : "Fluid" },
+                  { "url" : "signin",        "name" : "Sign In" },
+                  { "url" : "sticky-footer", "name" : "Sticky-Footer" },
+                  { "url" : "sfn",           "name" : "Sticky-Footer Navbar" },
+                  { "url" : "justified-nav", "name" : "Justified Navbar" },
+                  { "url" : "carousel",      "name" : "Carousel" },
+                  { "url" : "market-narrow", "name" : "Market Narrow" },
+                  { "url" : "static-grid",   "name" : "Static Grid" },
+                  { "url" : "ajax-grid",     "name" : "Ajax Grid" },
+                  { "url" : "angular-ui",    "name" : "Angular UI" },
+                  { "url" : "gen",           "name" : "Socket.io gen" },
+        ],
+        "grid": {
+            "head": [
+                  {"key":"name", "desc":"Name"},
+                  {"key":"creator", "desc":"Creator"},
+                  {"key":"engine", "desc":"Engine"},
+                  {"key":"license", "desc":"Software License"},
+            ],
+            "body": [
+                  {"name":"Chrome",  "creator":"Google", "engine":"Webkit", "license":"BSD"},
+                  {"name":"Firefox", "creator":"Mozilla", "engine":"Gecko", "license":"MPL/GPL/LGPL"},
+                  {"name":"Internet Explorer", "creator":"Microsoft", "engine":"Trident", "license":"Proprietary"},
+            ]
+        }
+    }
+
+    def get(self):
+        call_type = self.get_argument('type')
+        content = self.get_argument('content', [])
+
+        data = {}
+        if (content == 'detail'):
+            data = { 
+                 "detail" : ("This is %s detail inform generated via Ajax call by AngularJS." % call_type )
+                 }
+        else:
+            data = self.data[call_type] 
+        self.write(json_encode(data))
+
+class SigninHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("signin.tpl",
+                    project_name=self.settings["globals"]["project_name"],
+                    moduleName=""
+                   )
+
+class HeroHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("hero.tpl",
+                    project_name=self.settings["globals"]["project_name"],
+                    moduleName=""
+                   )
+
+class SFNHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("sfn.tpl",
+                    project_name=self.settings["globals"]["project_name"],
+                    moduleName=""
+                   )
+
+class StickyFooterHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("sticky-footer.tpl",
+                    project_name=self.settings["globals"]["project_name"],
+                    moduleName=""
+                   ) 
+
+class JustifiedNavHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("justified-nav.tpl",
+                    project_name=self.settings["globals"]["project_name"],
+                    moduleName=""
+                   ) 
+
+class CarouselHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("carousel.tpl",
+                    project_name=self.settings["globals"]["project_name"],
+                    moduleName=""
+                   ) 
+
+class MarketNarrowHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("market-narrow.tpl",
+                    project_name=self.settings["globals"]["project_name"],
+                    moduleName=""
+                   ) 
+
+class FluidHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("fluid.tpl",
+                    project_name=self.settings["globals"]["project_name"],
+                    username="Unknown",
+                    moduleName="",
+                   )
+
+    def post(self):
+        #self.set_header("Content-Type", "text/plain")
+        self.render("fluid.tpl",
+                    project_name=self.settings["globals"]["project_name"],
+                    username=self.get_argument("address"),
+                    moduleName="",
+                   )
+
+
+#static grid handler
+class StaticGridHandler(tornado.web.RequestHandler):
+    data = [
+        {"name":"Chrome",  "creator":"Google", "engine":"Webkit", "license":"BSD"},
+        {"name":"Firefox", "creator":"Mozilla", "engine":"Gecko", "license":"MPL/GPL/LGPL"},
+        {"name":"Internet Explorer", "creator":"Microsoft", "engine":"Trident", "license":"Proprietary"},
+    ]
+
+    def get(self):
+        self.render("grid.tpl",
+                    project_name=self.settings["globals"]["project_name"],
+                    data=self.data,
+                    moduleName="",
+                   )
+
+#ajax grid handler
+class AjaxGridHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("ajax-grid.tpl",
+                    project_name=self.settings["globals"]["project_name"],
+                    moduleName="",
+                   )
+
+#angular UI handler
+class AngularUIHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("angularUI.tpl",
+                    project_name=self.settings["globals"]["project_name"],
+                    moduleName="myApp",
+                   )
+
+class SocketIOGenHandler(tornado.web.RequestHandler):
+    """Regular HTTP handler to serve the chatroom page"""
+    def get(self):
+        self.render('gen.tpl',
+                    project_name=self.settings["globals"]["project_name"],
+                    moduleName="",
+                   ) 
+
+
