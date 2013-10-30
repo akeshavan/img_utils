@@ -88,7 +88,7 @@
 
     <div class="row">
     <div class="span4" id="chat">
-    
+           
     </div>
     </div>
 
