@@ -42,57 +42,93 @@
       .marketing p + h4 {
         margin-top: 28px;
       }
-
-
+      .tabs-left {
+        margin: 60px 0;
+      }
     </style>
 
 {% end %}
 
 {% block body %}
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="brand" href="#">{{ project_name }}</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
-              <li class="active"><a href="#">Home</a></li>
-              <li><a href="#about">About</a></li>
-              <li><a href="#contact">Contact</a></li>
-            </ul>
-          </div><!--/.nav-collapse -->
-        </div>
-      </div>
-    </div>
 
-    <div class="container" ng-controller="IndexCtrl">
 
-    <div class="jumbotron">
-    <h1>TIF converter</h1>
-    Drag and Drop your .tif files to convert them to high quality JPEGs
-    <p>For the Douglas Lab at UCSF, to convert Typhoon .tif images</p>
+<div class="container" ng-controller="IndexCtrl">
 
-    </div>
-    <div class="row">
-      <div class="span10">
-      <form action="/file-upload"
-      class="dropzone dz-clickable"
-      enctype="multipart/form-data"
-      id="my-awesome-dropzone"></form>
-      </div>
-    </div>
+	<div class="navbar navbar-inverse navbar-fixed-top">
+	      <div class="navbar-inner">
+	        <div class="container">
+	          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+	            <span class="icon-bar"></span>
+	            <span class="icon-bar"></span>
+	            <span class="icon-bar"></span>
+	          </button>
+	          <a class="brand" href="#">{{ project_name }}</a>
+	          <div class="nav-collapse collapse">
+	            <ul class="nav">
+	              <li class="active"><a href="#">Home</a></li>
+	              <li><a href="#about">About</a></li>
+	              <li><a href="#contact">Contact</a></li>
+	            </ul>
+	          </div><!--/.nav-collapse -->
+	        </div>
+	      </div>
+	    </div>
+		
+	<div class="row-fluid">
+		<div class="tabbable tabs-left"> <!-- Only required for left/right tabs -->
+		  <ul class="nav nav-tabs">
+		    <li class="active"><a href="#tif" data-toggle="tab">Section 1</a></li>
+		    <li><a href="#gel" data-toggle="tab">Section 2</a></li>
+		  </ul>
+		  
+		  <div class="tab-content">
+		    <div class="tab-pane active" id="tif"  ng-model-instant>
+		      
+			    <div class="jumbotron">
+			    <h1>TIF converter</h1>
+			    Drag and Drop your .tif files to convert them to high quality JPEGs
+			    <p>For the Douglas Lab at UCSF, to convert Typhoon .tif images</p>
 
-    <div class="row">
-    <div class="span4" id="chat">
-           
-    </div>
-    </div>
+			    </div>
+  
+		        <form action="/file-upload"
+		        class="dropzone dz-clickable"
+		        enctype="multipart/form-data"
+		        id="my-awesome-dropzone"></form>
+  
+			    <div id="downloads">
+                   
+					
+	   
+				</div>
+  
+  
+		    </div>
+			
+		    <div class="tab-pane" id="gel">
+			    <div class="jumbotron">
+			    <h1>Gel Analysis</h1>
+			    Automated Gel Analysis pipeline
+			    <p>Brought to you by the Douglas Lab</p>
 
-    </div> <!-- /container -->
+			    </div>
+		      
+		        <form action="/file-upload-gel"
+		        class="dropzone dz-clickable"
+		        enctype="multipart/form-data"
+		        id="my-awesome-dropzone-gel"></form>
+			  
+			  
+		    </div>
+		  </div>
+		</div>
+		
+	</div>
+  
+</div> <!-- /container -->
+
+
+
 {% end %}
 
 {% block script %}

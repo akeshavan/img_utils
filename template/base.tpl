@@ -31,6 +31,7 @@
     <script src="https://rawgithub.com/enyo/dropzone/master/downloads/dropzone.js"></script>
     <script src="static/js/socket.io.js"></script>
 
+
     {% block head %}
     {% end %}
   </head>

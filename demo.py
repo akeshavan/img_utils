@@ -22,7 +22,7 @@ def load_app(port, root):
     routers = [
         (r"/", MainHandler),
  #       DLRouter.urls,
-        (r"/ajax", AjaxHandler),
+ #       (r"/ajax", AjaxHandler),
         (r"/socket.io.js",SocketIOHandler),
  #       (r"/signin", SigninHandler),
  #       (r"/fluid", FluidHandler),
