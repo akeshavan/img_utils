@@ -9,6 +9,7 @@
 
     <!-- Le styles, please change the css url to local relative path -->
     <link href="http://www.dropzonejs.com/css/general.css?v=9" rel="stylesheet">
+    <!--<link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">-->
     <link href="http://getbootstrap.com/2.3.2/assets/css/bootstrap.css" rel="stylesheet">
     <link href="http://getbootstrap.com/2.3.2/assets/css/bootstrap-responsive.css" rel="stylesheet">
 

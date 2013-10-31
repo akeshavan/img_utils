@@ -16,9 +16,12 @@ function IndexCtrl($scope, $http) {
 
  } // ends dropzone options	
 	
-$scope.downloads = ["one download"]	
+var downloads = []	
+
+var downloadhtml= '<div class="span2"><a href="/REPLACE" class="thumbnail"><img src="/REPLACE" alt="Download Me"></a></div>'
+
 	
- var mysocket = function (file) {
+var mysocket = function (file) {
  	
      s = io.connect('http://' + window.location.hostname + ':8889', {
          rememberTransport: true
@@ -27,8 +30,16 @@ $scope.downloads = ["one download"]
     s.send(file.name)
 	// this s.on is happening twice??
     s.on('message', function(data) {
-        $('#downloads').append('<button class="btn btn-success">Download</button>')
-	 console.log("download "+data)
+        //console.log($('#downloads').text().indexOf(data))
+        var divs = $('#downloads').children()
+        var foo = true
+        for (var i=0;i<divs.length;i++){
+            if ($(divs[i]).children()[0].href.indexOf(data) != -1) { foo=false}
+        }
+        if (foo){ // if data isn't already in there
+            $('#downloads').append(downloadhtml.replace("REPLACE",data).replace('REPLACE',data))
+	    console.log("download "+data)
+            } //ends index of
  }); // ends s.on
 	
  }// ends mysocket

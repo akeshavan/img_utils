@@ -20,15 +20,19 @@ class MainHandler(tornado.web.RequestHandler):
                     moduleName=""
                    )
 
+def getname(filename):
+    _,name,ext = split_filename(filename)
+    oldname = os.path.join('uploads',name+ext)
+    newname = os.path.join('downloads',name+'.png')
+    return oldname, newname
+
 
 def convertFile(files):
-    _,name,ext = split_filename(files["filename"])
-    oldname = os.path.join('uploads',name+ext)
+    oldname, newname = getname(files["filename"])
     foo = open(oldname,'w')
     foo.write(files["body"])
     foo.close()
-    newname = os.path.join('downloads',name+'.jpg')
-    proc = subprocess.Popen(['convert',oldname,newname])
+    proc = subprocess.Popen(['convert','-quality','100',oldname,newname])
     proc.wait()
     print "converting", oldname, "to", newname
     return newname
@@ -61,7 +65,8 @@ class FileDownloadReady(tornadio2.conn.SocketConnection):
         # TODO: Check that the proc is complete!! When it is complete, send the message
         print message
         #newfile = convertFile(message)
-        self.send(message)
+        _,newname = getname(message)
+        self.send(newname)
         
         
     def close(self):

@@ -21,6 +21,7 @@ def load_app(port, root):
 
     routers = [
         (r"/", MainHandler),
+        (r'/downloads/(.*)',web.StaticFileHandler,{'path':os.path.join(root,'downloads')}),
  #       DLRouter.urls,
  #       (r"/ajax", AjaxHandler),
         (r"/socket.io.js",SocketIOHandler),
