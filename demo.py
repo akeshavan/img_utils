@@ -37,7 +37,8 @@ def load_app(port, root):
  #       (r"/ajax-grid", AjaxGridHandler),
  #       (r"/angular-ui", AngularUIHandler),
  #       (r"/gen", SocketIOGenHandler),
-        (r"/file-upload", FileUploadHandler)
+        (r"/file-upload", FileUploadHandler),
+        (r"/file-upload-gel", FileGelUploadHandler)
     ]
 
     try:
