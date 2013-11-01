@@ -3,7 +3,7 @@
 from os import path
 
 from tornado import web, ioloop, gen
-
+import os
 from handlers import *
 
 
@@ -22,21 +22,7 @@ def load_app(port, root):
     routers = [
         (r"/", MainHandler),
         (r'/downloads/(.*)',web.StaticFileHandler,{'path':os.path.join(root,'downloads')}),
- #       DLRouter.urls,
- #       (r"/ajax", AjaxHandler),
         (r"/socket.io.js",SocketIOHandler),
- #       (r"/signin", SigninHandler),
- #       (r"/fluid", FluidHandler),
- #       (r"/hero", HeroHandler),
- #       (r"/sfn", SFNHandler),
- #       (r"/sticky-footer", StickyFooterHandler),
- #       (r"/justified-nav", JustifiedNavHandler),
- #       (r"/carousel", CarouselHandler),
- #       (r"/market-narrow", MarketNarrowHandler),
- #       (r"/static-grid", StaticGridHandler),
- #       (r"/ajax-grid", AjaxGridHandler),
- #       (r"/angular-ui", AngularUIHandler),
- #       (r"/gen", SocketIOGenHandler),
         (r"/file-upload", FileUploadHandler),
         (r"/file-upload-gel", FileGelUploadHandler)
     ]
