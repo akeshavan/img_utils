@@ -135,9 +135,9 @@
                         </fieldset>
                         </form>
 			
-                         <div id="downloads">		
+                         <div id="geldownloads">		
 	   
-			</div>
+			             </div>
  			  
 			  
 		    </div>

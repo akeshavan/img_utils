@@ -16,23 +16,30 @@ def convertFile(files):
     foo = open(oldname,'w')
     foo.write(files["body"])
     foo.close()
-    proc = subprocess.Popen(['sleep','10'])#'convert','-quality','100',oldname,newname])
+    proc = subprocess.Popen(['convert','-quality','100',oldname,newname])
     proc.wait()
     print "converting", oldname, "to", newname
-    return newname
+    return {"download":newname}
     
 def KMeans(self):
     files = self.request.files["file[]"]
     jpgfiles = []
+    
+    #TODO: Find Cy3 and Cy5 based on names! 
+    # I am assuming Cy3 is first and Cy5 is second and there are only 2.
     for f in files:
         jpgf = convertFile(f)
-        jpgfiles.append(jpgf)
+        jpgfiles.append(jpgf["download"])
     cy3file = jpgfiles[0]
     cy5file = jpgfiles[1]
+    
     k = int(self.get_argument('K',''))
     bands = int(self.get_argument('Bands',''))
+    outfile = cy3file+"_kmeans_%d.png"%k
     inputs = {'k':k, 
     'num_bands':bands,
     'cy3_file':cy3file,
-    'cy5_file':cy5file}
-    run_kmeans_clustering(**inputs)
+    'cy5_file':cy5file,
+    'outfile':outfile}
+    output = run_kmeans_clustering(**inputs)
+    return {"download":output}

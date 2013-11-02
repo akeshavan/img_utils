@@ -22,7 +22,6 @@ def load_app(port, root):
     routers = [
         (r"/", MainHandler),
         (r'/downloads/(.*)',web.StaticFileHandler,{'path':os.path.join(root,'downloads')}),
-        (r"/socket.io.js",SocketIOHandler),
         (r"/file-upload", FileUploadHandler),
         (r"/file-upload-gel", FileGelUploadHandler)
     ]
@@ -30,19 +29,15 @@ def load_app(port, root):
     try:
         from tornadio2 import TornadioRouter, SocketServer
         from connections import QueryConnection
-        # Create tornadio router
-        #QueryRouter = TornadioRouter(QueryConnection)
-        # Create socket application
+
         http_application = web.Application(
             #QueryRouter.apply_routes(routers),
             routers,
             **settings
         )
-        sock_app = web.Application(DLRouter.urls,socket_io_port=8889)
-        #application.listen(8888)
+
         http_server = tornado.httpserver.HTTPServer(http_application)
         http_application.listen(port)
-        SocketServer(sock_app,auto_start=False)
         tornado.ioloop.IOLoop.instance().start()
     except ImportError:
         print "Failed to load module tornadio2"

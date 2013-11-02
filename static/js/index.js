@@ -7,15 +7,29 @@ function IndexCtrl($scope, $http) {
 
    Dropzone.options.myAwesomeDropzone = {
    init: function() {
-         this.on("success", function(file){
-          
-			 mysocket(file);
+         this.on("success", function(file,response){
+             var data = $.parseJSON(response)
+			 tifDownload(data)
 
          }); // ends this.on
                     }//ends init function 
 
  } // ends dropzone options	
 	
+
+var tifDownload = function(data){
+ 	
+    $('#downloads').append(downloadstr(data.download,'2'))
+    console.log("download "+data.download)
+    //     } 
+ }
+
+ var gelDownload = function(data){
+ 	
+     $('#geldownloads').append(downloadstr(data.download,'12'))
+     console.log("download "+data.download)
+     //     } 
+  }
 
 Dropzone.options.myAwesomeDropzoneGel = { // The camelized version of the ID of the form element
 
@@ -29,7 +43,7 @@ Dropzone.options.myAwesomeDropzoneGel = { // The camelized version of the ID of 
   // The setting up of the dropzone
   init: function() {
     var myDropzone = this;
-
+    var downloadslist = [];
     // First change the button to actually tell Dropzone to process the queue.
     this.element.querySelector("button[type=submit]").addEventListener("click", function(e) {
       // Make sure that the form isn't actually being sent.
@@ -52,38 +66,36 @@ Dropzone.options.myAwesomeDropzoneGel = { // The camelized version of the ID of 
       // Gets triggered when there was an error sending the files.
       // Maybe show form again, and notify user of error
     });
-  }
+	
+    this.on("success", function(file,response){
+		
+        var data = $.parseJSON(response)
+		console.log(downloadslist.indexOf(data.download))
+		if (downloadslist.indexOf(data.download)==-1){
+			gelDownload(data)
+			downloadslist.push(data.download)
+		}
+	    
+
+    }); // ends this.on
+	
+  } // end of init function
  
 }
 
 
 var downloads = []	
 
-var downloadhtml= '<div class="span2"><a href="/REPLACE" class="thumbnail"><img src="/REPLACE" alt="Download Me"></a></div>'
+function downloadstr (file,span){
+	var spanstr = '<div class="spanREPLACE">'
+	var href = '<a href="/REPLACE" class="thumbnail">'
+	var img = '<img src="/REPLACE" alt="Download Me"></a></div>'
+	
+	txt = spanstr.replace('REPLACE',span)+href.replace("REPLACE",file)+img.replace("REPLACE",file)
+	return txt
+}
 
 	
-var mysocket = function (file) {
- 	
-     s = io.connect('http://' + window.location.hostname + ':8889', {
-         rememberTransport: true
-     });
-    console.log(file.name)
-    s.send(file.name)
-	// this s.on is happening twice??
-    s.on('message', function(data) {
-        //console.log($('#downloads').text().indexOf(data))
-        var divs = $('#downloads').children()
-        var foo = true
-        for (var i=0;i<divs.length;i++){
-            if ($(divs[i]).children()[0].href.indexOf(data) != -1) { foo=false}
-        }
-        if (foo){ // if data isn't already in there
-            $('#downloads').append(downloadhtml.replace("REPLACE",data).replace('REPLACE',data))
-	    console.log("download "+data)
-            } //ends index of
- }); // ends s.on
-	
- }// ends mysocket
 
 
 

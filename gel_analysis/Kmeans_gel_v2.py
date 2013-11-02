@@ -4,6 +4,8 @@ from sklearn.cluster import KMeans
 from sklearn import cluster
 from scipy import misc
 from scipy.ndimage import label
+import matplotlib
+matplotlib.use("agg")
 from matplotlib.pyplot import imread, savefig,subplots,cm
 import numpy as np
 
@@ -111,7 +113,7 @@ def make_boxplot(measure_names,cy5,cy3,title=''):
 
 
 
-def plotallimages(cy3,cy5,labels,Clusters,outfile="../downloads/segment.png"):
+def plotallimages(cy3,cy5,labels,Clusters,outfile="downloads/segment.png"):
     fig,ax = subplots(ncols=4,nrows=1,figsize=(36,12))
     ax[0].imshow(cy3,cmap=cm.Greys)
     k = len(np.unique(labels))
@@ -129,19 +131,21 @@ def plotallimages(cy3,cy5,labels,Clusters,outfile="../downloads/segment.png"):
     ax[3].imshow(cy5,cmap=cm.Greys)
     ax[3].set_title('Cy5 - Defect')
     ax[0].set_title('Cy3 - Object')
-    savefig("segment.png")
+    savefig(outfile)
+    return outfile
 
 
 # Function that combines all
 
 
 
-def run_kmeans_clustering(k,num_bands,cy3_file,cy5_file):
+def run_kmeans_clustering(k,num_bands,cy3_file,cy5_file,outfile):
     cy3 = imread(cy3_file)
     cy5 = imread(cy5_file)
     labels = kmeans(cy3,k)
     Kidx, Clusters = choose_k(labels,cy3,num_bands)
-    plotallimages(cy3,cy5,labels,Clusters)
+    outfile = plotallimages(cy3,cy5,labels,Clusters,outfile)
+    return outfile
     
 
 
