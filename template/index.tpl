@@ -22,7 +22,7 @@
 	          <a class="brand" href="#">{{ project_name }}</a>
 	          <div class="nav-collapse collapse">
 	            <ul class="nav">
-	              <li class="active"><a href="#">Home</a></li>
+	              <li class="active"><a href="/">Home</a></li>
 	              <li><a href="#about">About</a></li>
 	              <li><a href="#contact">Contact</a></li>
 	            </ul>
@@ -34,11 +34,13 @@
 	<div class="row-fluid">
 		<div class="tabbable tabs-left"> <!-- Only required for left/right tabs -->
 		  <ul class="nav nav-tabs">
-		    <li class="active"><a href="#tif" data-toggle="tab">Tif Converter</a></li>
+		    <li class="active"><a href="#home" data-toggle="tab">Home</a></li>
+			<li><a href="#tif" data-toggle="tab">Tif Converter</a></li>
 		    <li><a href="#gel" data-toggle="tab">Gel Analysis</a></li>
 		  </ul>
 		  
 		  <div class="tab-content">
+			  {% include home.tpl %}
 			  {% include tif.tpl %}
 			  {% include gel.tpl %}
 

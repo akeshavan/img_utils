@@ -1,4 +1,4 @@
-<div class="tab-pane active" id="tif"  ng-controller="TifCtrl" ng-model-instant>
+<div class="tab-pane" id="tif"  ng-controller="TifCtrl" ng-model-instant>
   
     <div class="jumbotron">
     <h1>TIF converter</h1>
