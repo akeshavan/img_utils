@@ -30,7 +30,7 @@
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script src="http://code.angularjs.org/1.0.4/angular.js"></script>
     <script src="https://rawgithub.com/enyo/dropzone/master/downloads/dropzone.js"></script>
-    <script src="static/js/socket.io.js"></script>
+    
 
 
     {% block head %}

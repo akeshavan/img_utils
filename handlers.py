@@ -8,11 +8,10 @@ from tornado.escape import json_encode
 import tornadio2.router
 import tornadio2
 import tornadio2.server
-import lib
+#import lib
 import json
 from tornado.escape import json_encode
 #import tornadio2.web
-
 
 
 
@@ -24,32 +23,13 @@ class MainHandler(tornado.web.RequestHandler):
                     moduleName=""
                    )
 
-
-class FileUploadHandler(tornado.web.RequestHandler):
-    def get(self):
-        pass
-        return
-        
-    @asynchronous
-    def post(self):
-        files = self.request.files["file"][0]
-        info = lib.convertFile(files)
-        
-        self.write(json_encode(info))
-        self.finish()
+from projects.tif.handlers import FileUploadHandler
+from projects.gel.handlers import FileGelUploadHandler
 
 
 
-class FileGelUploadHandler(tornado.web.RequestHandler):
-    def get(self):
-        pass
-        return
-        
-    @asynchronous
-    def post(self,*args,**kwargs):
 
-        info = lib.KMeans(self)
-        self.write(json_encode(info))
-        self.finish()
+
+
        
 
