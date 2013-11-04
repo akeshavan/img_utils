@@ -27,34 +27,39 @@ def invert(img):
 
 def kmeans(img,nlabels=5):
     import os
-    from matplotlib.pyplot import imread
+    from matplotlib.pyplot import imread, imsave
     from sklearn import cluster
     from nipype.utils.filemanip import split_filename
+    import numpy as np
+    import scipy.io as sio
     lena = imread(img)
     X = lena.reshape((-1, 1)) # We need an (n_sample, n_feature) array
     k_means = cluster.KMeans(n_clusters=nlabels, n_init=1)
     k_means.fit(X) 
     values = k_means.cluster_centers_.squeeze()
     labels = k_means.labels_
-    outkmeans = labels.reshape(img.shape)
+    outkmeans = labels.reshape(lena.shape)
     loc, name, ext = split_filename(img)
-    outfile = os.path.abspath(name+"_kmeans"+ext)
-    with open(outfile, 'wb') as f:
-        f.write(outkmeans)
+    outfile = os.path.abspath(name+"_kmeans.mat")
+    sio.savemat(outfile,{"kmeans":outkmeans})
     return outfile
 
 
 def split_k(in_file):
     import numpy as np
-    data = imread(in_file)
+    from matplotlib.pyplot import imread, imsave
+    from nipype.utils.filemanip import split_filename
+    import os
+    import scipy.io as sio
+    data = np.asarray(sio.loadmat(in_file)["kmeans"])
     vals = np.unique(data)
-    _, name, ext = split_filename(img)
+    _, name, ext = split_filename(in_file)
     outfiles = []
     for v in vals:
-        outfile = os.path.abspath(name+"_k%02d"%v+ext)
-        with open(outfile, 'wb') as f:
-            f.write(data==v)
-        outfiles.append(outfiles)
+        outfile = os.path.abspath(name+"_k%02d"%(v)+".mat")
+        print outfile
+        sio.savemat(outfile,{"k":data==v})
+        outfiles.append(outfile)
     return outfiles
     
 # Labeling and Centroid Calculation
@@ -65,16 +70,17 @@ def get_labels(data_file, min_extent=500):
     from matplotlib.pyplot import imread
     from scipy.ndimage import label
     import os
-    data = imread(data_file)
-    labels, nlabels = label(data)
+    import scipy.io as sio
+    import numpy as np
+    data = sio.loadmat(data_file)
+    labels, nlabels = label(data["k"])
     for idx in range(1, nlabels+1):
         if np.sum(labels==idx)<min_extent:
             labels[labels==idx] = 0
     nlabels = len(np.unique(labels))
     _,name,ext = split_filename(data_file)
-    outfile = os.path.abspath(name+"_label"+ext)
-    with open(outfile, 'wb') as f:
-        f.write(outkmeans)
+    outfile = os.path.abspath(name+"_label.mat")
+    sio.savemat(outfile,{"label":labels})
     return outfile, nlabels
 
 
@@ -109,17 +115,24 @@ def choose_k(labelfiles,cy3file,numbands):
     from matplotlib.pyplot import imread
     import os
     import numpy as np
+    import scipy.io as sio
     cy3 = imread(cy3file)
     means = []
     nums = []
     for l in labelfiles:
-        label = imread(l).astype(bool)
+        print l
+        label = sio.loadmat(l)["label"]
+        label = np.asarray(label).astype(bool)
+        print label.shape
+        print cy3.shape
+        print label.dtype
         mean = np.mean(cy3[label])
+        print mean
         means.append(mean)
         num = np.sum(label)
         nums.append(num)
     idx = means.index(np.min(np.asarray(means)[np.asarray(num)>=numbands]))
-    return idx
+    return idx,labelfiles[idx]
     
 # Plotting
 
@@ -160,14 +173,34 @@ def make_boxplot(measure_names,cy5,cy3,title=''):
 
 
 
-def plotallimages(cy3,cy5,labels,Clusters,outfile="downloads/segment.png"):
+def plotallimages(cy3file,cy5file,labelsfile,Clustersfile):
+    from matplotlib.pyplot import imread, savefig,subplots,cm
+    from nipype.utils.filemanip import split_filename
+    import os
+    import numpy as np
+    import scipy.io as sio
+    
+    def get_centroids(labels):
+        labelnums = np.unique(labels)
+        centroids = []
+        for label in labelnums:
+            centroids.append(np.mean(np.asarray(np.nonzero(labels==label)), axis = 1))
+        return centroids
+    
+    cy3 = imread(cy3file)
+    cy5=imread(cy5file)
+    labels = np.asarray(sio.loadmat(labelsfile)["kmeans"])
+    Clusters = np.asarray(sio.loadmat(Clustersfile)["label"])
+    _,name,ext = split_filename(Clustersfile)
+    outfile = os.path.abspath(name+"_img_all.png")
+    
     fig,ax = subplots(ncols=4,nrows=1,figsize=(36,12))
     ax[0].imshow(cy3,cmap=cm.Greys)
     k = len(np.unique(labels))
     cmap = cm.get_cmap('jet', k)
     l = ax[1].imshow(labels,cmap=cmap)
     ax[1].set_title('K Means Clustering')
-    #ax[1].figure.colorbar(l)
+    
     nlabels = len(np.unique(Clusters))
     cmap = cm.get_cmap('jet', nlabels)
     b=ax[2].imshow(Clusters,cmap=cmap,alpha=0.3)
@@ -178,7 +211,7 @@ def plotallimages(cy3,cy5,labels,Clusters,outfile="downloads/segment.png"):
     ax[3].imshow(cy5,cmap=cm.Greys)
     ax[3].set_title('Cy5 - Defect')
     ax[0].set_title('Cy3 - Object')
-    savefig(outfile)
+    savefig(outfile,bbox_inches="tight")
     return outfile
 
 
@@ -195,14 +228,14 @@ def run_kmeans_clustering(k,num_bands,cy3_file,cy5_file,outfile):
     return outfile
     
 
-def create_workflow(cy3_file, cy5_file,n_labels,num_bands,min_extent=500):
+def create_workflow(cy3_file, cy5_file,k,num_bands,min_extent=500):
     wf = pe.Workflow(name="Kmeans_segmentation")
-    km = pe.Node(util.Function(input_names=["img","n_labels"],
-                               output_names=["outfile"]),
-                               function=kmeans,
+    km = pe.Node(util.Function(input_names=["img","nlabels"],
+                               output_names=["outfile"],
+                               function=kmeans),
                  name="Kmeans")
     km.inputs.img = cy3_file
-    km.inputs.n_labels = n_labels
+    km.inputs.nlabels = k
     
     splitk = pe.Node(util.Function(input_names=["in_file"],
                                    output_names=["outfiles"],
@@ -212,42 +245,55 @@ def create_workflow(cy3_file, cy5_file,n_labels,num_bands,min_extent=500):
     wf.connect(km,"outfile",splitk,"in_file")
     getlabels = pe.MapNode(util.Function(input_names=["data_file","min_extent"],
                                          output_names=["outfile","n_labels"],
-                                         function=get_labels]),
+                                         function=get_labels),
                            name="get_labels",iterfield=["data_file"])
     wf.connect(splitk,"outfiles",getlabels,"data_file")
     getlabels.inputs.min_extent = min_extent
     
     choosek = pe.Node(util.Function(input_names=["labelfiles","cy3file","numbands"],
-                                    output_names=["idx"],
+                                    output_names=["idx","labelfile"],
                                     function=choose_k),name="choose_k")
     wf.connect(getlabels,"outfile",choosek,"labelfiles")
     choosek.inputs.cy3file = cy3_file
     choosek.inputs.numbands = num_bands
     
+    plotter = pe.Node(util.Function(input_names=["cy3file","cy5file","labelsfile","Clustersfile"],
+                                    output_names=["outfile"],
+                                    function=plotallimages),
+                      name="plot_images")
+    wf.connect(choosek,"labelfile",plotter,"Clustersfile")
+    wf.connect(km,"outfile",plotter,"labelsfile")
+    plotter.inputs.cy3file = cy3_file
+    plotter.inputs.cy5file = cy5_file
+    
+    wf.base_dir = "/Users/keshavan/Projects/img_utils/working_dir"
+    wf.write_graph()
+    wf.run()
 # 42X Noodle
 
 # Define Parameters:
 
 
+if __name__ == "__main__":
 
-p42X = {'k':5, 
-        'num_bands':14,
-        'cy3_file':'../downloads/10282013_42XCy3_D_O_3H_70V-[Cy3].jpg',
-        'cy5_file':'../downloads/10282013_42XCy3_D_O_3H_70V-[Cy5].jpg'}
-
-
-
-#run_kmeans_clustering(**p42X)
+    p42X = {'k':5, 
+            'num_bands':14,
+            'cy3_file':'../../../downloads/10282013_42XCy3_D_O_3H_70V-[Cy3].jpg',
+            'cy5_file':'../../../downloads/10282013_42XCy3_D_O_3H_70V-[Cy5].jpg'}
 
 
-# 84X Noodle
+    create_workflow(**p42X)
+    #run_kmeans_clustering(**p42X)
+
+
+    # 84X Noodle
 
 
 
-p84X = {'k':3, 
-        'num_bands':14,
-        'cy3_file':'../downloads/10232013_84XCy3_D_O_3H_70V-[Cy3].jpg',
-        'cy5_file':'../downloads/10232013_84XCy3_D_O_3H_70V-[Cy5].jpg'}
+    p84X = {'k':3, 
+            'num_bands':14,
+            'cy3_file':'../downloads/10232013_84XCy3_D_O_3H_70V-[Cy3].jpg',
+            'cy5_file':'../downloads/10232013_84XCy3_D_O_3H_70V-[Cy5].jpg'}
 
 
 
