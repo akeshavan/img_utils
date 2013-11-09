@@ -23,7 +23,8 @@ def load_app(port, root):
         (r"/", MainHandler),
         (r'/downloads/(.*)',web.StaticFileHandler,{'path':os.path.join(root,'downloads')}),
         (r"/file-upload", FileUploadHandler),
-        (r"/file-upload-gel", FileGelUploadHandler)
+        (r"/file-upload-gel", FileGelUploadHandler),
+        (r"/mat-upload", MatUploadHandler)
     ]
 
     try:

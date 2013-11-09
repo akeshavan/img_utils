@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+#from nipype import config
+#config.enable_debug_mode()
 import sklearn
 from sklearn.cluster import KMeans
 from sklearn import cluster
@@ -11,7 +13,9 @@ import numpy as np
 import nipype.pipeline.engine as pe
 import nipype.interfaces.utility as util
 from nipype.utils.filemanip import split_filename
-
+import nipype.interfaces.io as nio
+import uuid
+import os
 
 def invert(img):
     from copy import deepcopy
@@ -42,6 +46,7 @@ def kmeans(img,nlabels=5):
     loc, name, ext = split_filename(img)
     outfile = os.path.abspath(name+"_kmeans.mat")
     sio.savemat(outfile,{"kmeans":outkmeans})
+    print outfile, "exists", os.path.exists(outfile)
     return outfile
 
 
@@ -65,7 +70,7 @@ def split_k(in_file):
 # Labeling and Centroid Calculation
 
 
-def get_labels(data_file, min_extent=500):
+def get_labels(data_file, min_extent=100):
     from nipype.utils.filemanip import split_filename
     from matplotlib.pyplot import imread
     from scipy.ndimage import label
@@ -123,11 +128,7 @@ def choose_k(labelfiles,cy3file,numbands):
         print l
         label = sio.loadmat(l)["label"]
         label = np.asarray(label).astype(bool)
-        print label.shape
-        print cy3.shape
-        print label.dtype
         mean = np.mean(cy3[label])
-        print mean
         means.append(mean)
         num = np.sum(label)
         nums.append(num)
@@ -228,8 +229,9 @@ def run_kmeans_clustering(k,num_bands,cy3_file,cy5_file,outfile):
     return outfile
     
 
-def create_workflow(cy3_file, cy5_file,k,num_bands,min_extent=500):
-    wf = pe.Workflow(name="Kmeans_segmentation")
+def create_workflow(cy3_file, cy5_file,k,num_bands,min_extent=100):
+    wfuuid = uuid.uuid1().hex
+    wf = pe.Workflow(name="Kmeans_segmentation_%s"%wfuuid)
     km = pe.Node(util.Function(input_names=["img","nlabels"],
                                output_names=["outfile"],
                                function=kmeans),
@@ -266,10 +268,21 @@ def create_workflow(cy3_file, cy5_file,k,num_bands,min_extent=500):
     plotter.inputs.cy3file = cy3_file
     plotter.inputs.cy5file = cy5_file
     
+    subs = [("_get_labels%d"%i, "") for i in range(5)]
+    
+    sinker = pe.Node(nio.DataSink(),name="sinker")
+    sinker.inputs.base_directory = os.path.abspath("downloads")
+    sinker.inputs.container = "%s"%(wfuuid)
+    sinker.inputs.substitutions = subs
+    wf.connect(km,"outfile",sinker,"kmeans")
+    wf.connect(getlabels,"outfile",sinker,"labelfiles")
+    wf.connect(plotter,"outfile",sinker,"image")
     wf.base_dir = "/Users/keshavan/Projects/img_utils/working_dir"
+    wf.config["execution"] = {"remove_unnecessary_outputs":False}
     wf.write_graph()
     wf.run()
 # 42X Noodle
+    return os.path.join("downloads/%s"%wfuuid)
 
 # Define Parameters:
 

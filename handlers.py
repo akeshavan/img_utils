@@ -25,6 +25,7 @@ class MainHandler(tornado.web.RequestHandler):
 
 from projects.tif.handlers import FileUploadHandler
 from projects.gel.handlers import FileGelUploadHandler
+from projects.mat_viewer.handlers import MatUploadHandler
 
 
 
