@@ -3,6 +3,7 @@
 {% block head %}
 
 <link href="/static/css/index.css" rel="stylesheet">
+<link href="/static/css/mat.css" rel="stylesheet">
 
 
 {% end %}
@@ -42,12 +43,14 @@
 		    <li class="active"><a href="#home" data-toggle="tab">Home</a></li>
 			<li><a href="#tif" data-toggle="tab">Tif Converter</a></li>
 		    <li><a href="#gel" data-toggle="tab">Gel Analysis</a></li>
+			<li><a href="#mat" data-toggle="tab">Mat Viewer</a></li>
 		  </ul>
 		  
 		  <div class="tab-content">
 			  {% include home.tpl %}
 			  {% include tif.tpl %}
 			  {% include gel.tpl %}
+			  {% include mat.tpl %}
 
 		  </div>
 		</div>
@@ -68,4 +71,5 @@
 	var logout = function(){
 	document.location.href = "https://www.google.com/accounts/Logout?continue=https://appengine.google.com/_ah/logout?continue=http://localhost:8888";
 	}</script>
+	<script src="static/js/mat.js"></script>
 {% end %}

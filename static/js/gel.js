@@ -61,10 +61,10 @@ function GelCtrl($scope, $http) {
  
 	 function downloadstr (file,span){
 	 	var spanstr = '<div class="spanREPLACE">'
-	 	var href = '<a href="/REPLACE" class="thumbnail">'
+	 	var href = '<a href="/REPLACE">Download</a></div>'
 	 	var img = '<img src="/REPLACE" alt="Download Me"></a></div>'
 	
-	 	txt = spanstr.replace('REPLACE',span)+href.replace("REPLACE",file)+img.replace("REPLACE",file)
+	 	txt = spanstr.replace('REPLACE',span)+href.replace("REPLACE",file)//+img.replace("REPLACE",file)
 	 	return txt
 	 }
  

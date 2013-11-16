@@ -27,6 +27,7 @@ def load_app(port, root):
         (r"/file-upload", FileUploadHandler),
         (r"/file-upload-gel", FileGelUploadHandler),
         (r"/login", LoginHandler),
+        (r"/mat-upload", MatUploadHandler)
     ]
 
     try:
