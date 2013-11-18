@@ -39,6 +39,7 @@
 			<li><a href="#tif" data-toggle="tab">Tif Converter</a></li>
 		    <li><a href="#gel" data-toggle="tab">Gel Analysis</a></li>
 			<li><a href="#mat" data-toggle="tab">Mat Viewer</a></li>
+			<li><a href="#wiki" data-toggle="tab">Wiki</a></li>
 		  </ul>
 		  
 		  <div class="tab-content">
@@ -46,6 +47,7 @@
 			  {% include tif.tpl %}
 			  {% include gel.tpl %}
 			  {% include mat.tpl %}
+			  {% include wiki.tpl %}
 
 		  </div>
 		</div>
@@ -63,4 +65,5 @@
 	<script src="static/js/tif.js"></script>
 	<script src="static/js/gel.js"></script>
 	<script src="static/js/mat.js"></script>
+	<script src="static/js/wiki.js"></script>
 {% end %}
