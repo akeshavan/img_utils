@@ -5,6 +5,7 @@
 <link href="/static/css/index.css" rel="stylesheet">
 <link href="/static/css/mat.css" rel="stylesheet">
 
+
 {% end %}
 
 {% block body %}
@@ -22,10 +23,14 @@
 	          </button>
 	          <a class="brand" href="#">{{ project_name }}</a>
 	          <div class="nav-collapse collapse">
+			  <p class="navbar-text pull-right">
+			               Logged in as <a href="#" class="navbar-link"></a>
+			             </p>
 	            <ul class="nav">
 	              <li class="active"><a href="/">Home</a></li>
 	              <li><a href="#about">About</a></li>
-	              <li><a href="#contact">Contact</a></li>
+	              <li><a href="/login">Login</a></li>
+				  <li><a href="#" onClick="logout()">Logout</a></li>
 	            </ul>
 	          </div><!--/.nav-collapse -->
 	        </div>
@@ -64,6 +69,10 @@
     <script src="static/js/index.js"></script>
 	<script src="static/js/tif.js"></script>
 	<script src="static/js/gel.js"></script>
+	<script>
+	var logout = function(){
+	document.location.href = "https://www.google.com/accounts/Logout?continue=https://appengine.google.com/_ah/logout?continue=http://localhost:8888";
+	}</script>
 	<script src="static/js/mat.js"></script>
 	<script src="static/js/wiki.js"></script>
 {% end %}

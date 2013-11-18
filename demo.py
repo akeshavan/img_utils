@@ -17,6 +17,8 @@ def load_app(port, root):
         "flash_policy_port": 843,
         "flash_policy_file": path.join(root, 'flashpolicy.xml'),
         "socket_io_port": port,
+        "cookie_secret": "32oETzKXQAGaYdkL5gEmGeJJFuYh7EQnp2XdTP1o/V9=",
+        "login_url": "/login",
     }
 
     routers = [
@@ -24,6 +26,7 @@ def load_app(port, root):
         (r'/downloads/(.*)',web.StaticFileHandler,{'path':os.path.join(root,'downloads')}),
         (r"/file-upload", FileUploadHandler),
         (r"/file-upload-gel", FileGelUploadHandler),
+        (r"/login", LoginHandler),
         (r"/mat-upload", MatUploadHandler)
     ]
 
