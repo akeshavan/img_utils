@@ -6,7 +6,6 @@ from tornado import web, ioloop, gen
 import os
 from handlers import *
 
-
 def load_app(port, root):
     settings = {
         "static_path": path.join(root, "static"),

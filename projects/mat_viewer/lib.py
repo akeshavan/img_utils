@@ -1,10 +1,9 @@
-from nipype.utils.filemanip import split_filename
-import subprocess
 import os
 import scipy.io as sio
-from matplotlib.pyplot import imsave, savefig, imshow, annotate, imread, figure
+from matplotlib.pyplot import savefig, imshow, annotate, imread, figure
 import numpy as np
-    
+from utils import split_filename
+
 def getname(filename):
     _,name,ext = split_filename(filename)
     oldname = os.path.join('uploads',name+ext)
@@ -37,16 +36,15 @@ def convert(files):
     
     bar = sio.loadmat(oldname)
     keys = [b for b in bar.keys() if not b.startswith("__")]
-    if len(keys)==1:
+    if len(keys) == 1:
         data = bar[keys[0]]
-        figure(1)
+        figure()
         imshow(data)
         centroids = get_centroids(data)
         for i,c in enumerate(centroids):
             annotate('%d'%i,c[::-1],color="black");
         savefig(newname)
-        #imsave(newname,data)
-    return {"download":newname}
+    return {"download": newname}
     
 def extract(files):
     
@@ -65,7 +63,7 @@ def extract(files):
     
     bar = sio.loadmat(oldmatname)
     keys = [b for b in bar.keys() if not b.startswith("__")]
-    if len(keys)==1:
+    if len(keys) == 1:
         data = bar[keys[0]]
         figure(1)
         imshow(data)
@@ -79,9 +77,5 @@ def extract(files):
         for i in range(1,len(vals["roi"])):
             valsfile.write("%d\t%f\n"%(vals["roi"][i],vals["mean"][i]))
         valsfile.close()
-    
-    #proc = subprocess.Popen(['convert','-quality','100',oldname,newname])
-    #proc.wait()
-    #print "converting", oldname, "to", newname
-    return {"download":newmatname,"vals":"downloads/vals.tsv"}
-    
+
+    return {"download": newmatname,"vals": "downloads/vals.tsv"}

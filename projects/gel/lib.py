@@ -1,8 +1,7 @@
 from gel_analysis.Kmeans_gel_v2 import run_kmeans_clustering, create_workflow
-from nipype.utils.filemanip import split_filename
 import subprocess
 import os
-
+from utils import split_filename
     
 def getname(filename):
     _,name,ext = split_filename(filename)
@@ -36,8 +35,7 @@ def KMeans_old(self):
     k = int(self.get_argument('K',''))
     bands = int(self.get_argument('Bands',''))
     outfile = cy3file+"_kmeans_%d.png"%k
-    inputs = {'k':k, 
-    'num_bands':bands,
+    inputs = {'k':k,
     'cy3_file':cy3file,
     'cy5_file':cy5file,
     'outfile':outfile}
@@ -59,8 +57,7 @@ def KMeans(self):
     k = int(self.get_argument('K',''))
     bands = int(self.get_argument('Bands',''))
     outfile = os.path.join('downloads',os.path.split(cy3file)[1]+"_kmeans_%d.zip"%k)
-    inputs = {'k':k, 
-    'num_bands':bands,
+    inputs = {'k':k,
     'cy3_file':cy3file,
     'cy5_file':cy5file}
     output = create_workflow(**inputs)

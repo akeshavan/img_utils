@@ -1,21 +1,13 @@
 # -*- coding: utf-8 -*-
 #from nipype import config
 #config.enable_debug_mode()
-import sklearn
-from sklearn.cluster import KMeans
-from sklearn import cluster
-from scipy import misc
-from scipy.ndimage import label
 import matplotlib
 matplotlib.use("agg")
 from matplotlib.pyplot import imread, savefig,subplots,cm
 import numpy as np
-import nipype.pipeline.engine as pe
-import nipype.interfaces.utility as util
-from nipype.utils.filemanip import split_filename
-import nipype.interfaces.io as nio
 import uuid
 import os
+from utils import split_filename
 
 def invert(img):
     from copy import deepcopy
@@ -72,13 +64,12 @@ def split_k(in_file):
 
 def get_labels(data_file, min_extent=100):
     from nipype.utils.filemanip import split_filename
-    from matplotlib.pyplot import imread
     from scipy.ndimage import label
     import os
     import scipy.io as sio
     import numpy as np
     data = sio.loadmat(data_file)
-    labels, nlabels = label(data["k"])
+    labels, nlabels = label(data["k"] == 0)
     for idx in range(1, nlabels+1):
         if np.sum(labels==idx)<min_extent:
             labels[labels==idx] = 0
@@ -99,26 +90,9 @@ def get_centroids(labels):
 
 
 
-def choose_k_old(labels,cy3,numbands=10):
-    K = np.unique(labels)
-    Ls = []
-    num = []
-    means = []
-    for k in K:
-        L, nlabels = get_labels(labels==k,500)
-        Ls.append(L)
-        num.append(nlabels)
-        mean = np.mean(cy3[labels==k])
-        means.append(mean)
-        #print nlabels, mean
-    idx = means.index(np.min(np.asarray(means)[np.asarray(num)>=numbands]))
-    return idx, Ls[idx]
-
-
-def choose_k(labelfiles,cy3file,numbands):
+def choose_k(labelfiles,cy3file):
     from nipype.utils.filemanip import split_filename
     from matplotlib.pyplot import imread
-    import os
     import numpy as np
     import scipy.io as sio
     cy3 = imread(cy3file)
@@ -126,13 +100,14 @@ def choose_k(labelfiles,cy3file,numbands):
     nums = []
     for l in labelfiles:
         print l
-        label = sio.loadmat(l)["label"]
+        label = sio.loadmat(l)["k"]
         label = np.asarray(label).astype(bool)
         mean = np.mean(cy3[label])
         means.append(mean)
         num = np.sum(label)
         nums.append(num)
-    idx = means.index(np.min(np.asarray(means)[np.asarray(num)>=numbands]))
+    #idx = means.index(np.min(np.asarray(means)[np.asarray(num)>=numbands]))
+    idx = np.argmax(means) #I think 255 is the blackest value
     return idx,labelfiles[idx]
     
 # Plotting
@@ -190,8 +165,8 @@ def plotallimages(cy3file,cy5file,labelsfile,Clustersfile):
     
     cy3 = imread(cy3file)
     cy5=imread(cy5file)
-    labels = np.asarray(sio.loadmat(labelsfile)["kmeans"])
-    Clusters = np.asarray(sio.loadmat(Clustersfile)["label"])
+    Clusters = np.asarray(sio.loadmat(labelsfile)["label"])
+    labels = np.asarray(sio.loadmat(Clustersfile)["k"])
     _,name,ext = split_filename(Clustersfile)
     outfile = os.path.abspath(name+"_img_all.png")
     
@@ -229,7 +204,12 @@ def run_kmeans_clustering(k,num_bands,cy3_file,cy5_file,outfile):
     return outfile
     
 
-def create_workflow(cy3_file, cy5_file,k,num_bands,min_extent=100):
+def create_workflow(cy3_file, cy5_file,k, min_extent=100):
+    import nipype.pipeline.engine as pe
+    import nipype.interfaces.utility as util
+    from nipype.utils.filemanip import split_filename
+    import nipype.interfaces.io as nio
+
     wfuuid = uuid.uuid1().hex
     wf = pe.Workflow(name="Kmeans_segmentation_%s"%wfuuid)
     km = pe.Node(util.Function(input_names=["img","nlabels"],
@@ -244,27 +224,25 @@ def create_workflow(cy3_file, cy5_file,k,num_bands,min_extent=100):
                                    function=split_k),
                      name="split_k")
                      
-    wf.connect(km,"outfile",splitk,"in_file")
-    getlabels = pe.MapNode(util.Function(input_names=["data_file","min_extent"],
+
+    getlabels = pe.Node(util.Function(input_names=["data_file","min_extent"],
                                          output_names=["outfile","n_labels"],
                                          function=get_labels),
-                           name="get_labels",iterfield=["data_file"])
-    wf.connect(splitk,"outfiles",getlabels,"data_file")
+                           name="get_labels")
+
     getlabels.inputs.min_extent = min_extent
     
-    choosek = pe.Node(util.Function(input_names=["labelfiles","cy3file","numbands"],
+    choosek = pe.Node(util.Function(input_names=["labelfiles","cy3file"],
                                     output_names=["idx","labelfile"],
                                     function=choose_k),name="choose_k")
-    wf.connect(getlabels,"outfile",choosek,"labelfiles")
+
     choosek.inputs.cy3file = cy3_file
-    choosek.inputs.numbands = num_bands
-    
+
     plotter = pe.Node(util.Function(input_names=["cy3file","cy5file","labelsfile","Clustersfile"],
                                     output_names=["outfile"],
                                     function=plotallimages),
                       name="plot_images")
-    wf.connect(choosek,"labelfile",plotter,"Clustersfile")
-    wf.connect(km,"outfile",plotter,"labelsfile")
+
     plotter.inputs.cy3file = cy3_file
     plotter.inputs.cy5file = cy5_file
     
@@ -274,9 +252,20 @@ def create_workflow(cy3_file, cy5_file,k,num_bands,min_extent=100):
     sinker.inputs.base_directory = os.path.abspath("downloads")
     sinker.inputs.container = "%s"%(wfuuid)
     sinker.inputs.substitutions = subs
+
+    wf.connect(km,"outfile",splitk,"in_file")
+    wf.connect(getlabels,"outfile",plotter,"labelsfile")
+    wf.connect(splitk,"outfiles",choosek,"labelfiles")
+    wf.connect(choosek,"labelfile", getlabels,"data_file")
+
+    wf.connect(choosek,"labelfile",plotter,"Clustersfile")
+
     wf.connect(km,"outfile",sinker,"kmeans")
     wf.connect(getlabels,"outfile",sinker,"labelfiles")
     wf.connect(plotter,"outfile",sinker,"image")
+
+
+
     wf.base_dir = "/Users/keshavan/Projects/img_utils/working_dir"
     wf.config["execution"] = {"remove_unnecessary_outputs":False}
     wf.write_graph()
@@ -290,7 +279,6 @@ def create_workflow(cy3_file, cy5_file,k,num_bands,min_extent=100):
 if __name__ == "__main__":
 
     p42X = {'k':5, 
-            'num_bands':14,
             'cy3_file':'../../../downloads/10282013_42XCy3_D_O_3H_70V-[Cy3].jpg',
             'cy5_file':'../../../downloads/10282013_42XCy3_D_O_3H_70V-[Cy5].jpg'}
 
@@ -304,13 +292,11 @@ if __name__ == "__main__":
 
 
     p84X = {'k':3, 
-            'num_bands':14,
             'cy3_file':'../downloads/10232013_84XCy3_D_O_3H_70V-[Cy3].jpg',
             'cy5_file':'../downloads/10232013_84XCy3_D_O_3H_70V-[Cy5].jpg'}
 
 
 
-#run_kmeans_clustering(**p84X)
 
 
 

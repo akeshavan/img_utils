@@ -45,7 +45,7 @@
 
 	</fieldset>
 
-	<input id="wpEditToken" type="hidden" value="61ef7f00310d433fbbfc036c89c4e614+\" name="wpEditToken" />
+	<input id="wpEditToken" type="hidden" value="0228d7952603fd4d278af148624f8730+\" name="wpEditToken" />
 	<input type="hidden" value="Special:Upload" name="title" />
 	<input id="wpDestFileWarningAck" name="wpDestFileWarningAck" type="hidden" />
 	<input type="submit" value="Upload file" name="wpUpload" title="Start upload [s]" accesskey="s" class="btn btn-success" />
